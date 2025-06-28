@@ -71,4 +71,70 @@ plt.xlabel('Preço (PF Sem Impostos)')
 plt.ylabel('Frequência')
 plt.show()
 
+#--------------ANALISE DE PREÇOS POR LABORATÓRIO-------------------
+analise_laboratorio = df.groupby('Laboratorio')['PF Sem Impostos']
+print("\n[ÀNALISE POR LABORATORIO] (Top 10 por Preço Medio)")
+print(analise_laboratorio.head(10))
+plt.figure(figsize=(12, 8))
+analise_laboratorio.head(10)['mean'].sort_values().plot(kind='barh', color='skyblue')
+plt.title('Preço Médio por Laboratório (PF Sem Impostos)')
+plt.xlabel('Preço Médio (PF Sem Impostos)')
+plt.ylabal('Laboratorio')
+plt.show()
+
+# Análise de Preço por Tipo de Produto
+analise_tipo = df.groupby('TIPO DE PRODUTO (SEGREGAÇÃO)')['PF Sem Impostos'].describe()
+print("\n--- Análise por Tipo de Produto ---")
+print(analise_tipo)
+
+# Visualização com Boxplot
+plt.figure(figsize=(10, 7))
+sns.boxplot(x='TIPO DE PRODUTO (SEGREGAÇÃO)', y='PF Sem Impostos', data=df)
+plt.title('Distribuição de Preços por Tipo de Produto')
+plt.ylabel('Preço (PF Sem Impostos)')
+plt.xlabel('Tipo de Produto')
+
+# Para visualizar 
+plt.ylim(0, 200)
+plt.show()
+
+# Identificando outliers com o método IQR
+Q1 = df['PF Sem Impostos'].quantile(0.25)
+Q3 = df['PF Sem Impostos'].quantile(0.75)
+IQR = Q3 - Q1
+limite_superior = Q3 + 1.5 * IQR
+
+outliers = df[df['PF Sem Impostos'] > limite_superior]
+
+print(f"\n--- Análise de Outliers ---")
+print(f"O limite superior para um preço ser considerado outlier é: R$ {limite_superior:.2f}")
+print(f"Foram encontrados {len(outliers)} produtos considerados outliers.")
+print("Exibindo os 10 mais caros entre eles:")
+print(outliers.sort_values(by='PF Sem Impostos', ascending=False).head(10)[['PRODUTO', 'LABORATÓRIO', 'PF Sem Impostos']])
+
+# os 20 mais comuns
+top_20_apresentacoes = df['APRESENTAÇÃO'].value_counts().head(20)
+print("\n--- Top 20 Apresentações Mais Comuns ---")
+print(top_20_apresentacoes)
+
+#preço medio de acordo com o laboratiorio
+analise_competitiva = df.groupby('LABOATORIO')['PF Sem Impostos'].agg(['count', 'mean'])
+analise_competitiva = analise_competitiva[analise_competitiva['count'] > 5 ]
+#pra filtrar melho as parada
+plt.figure(figsize=(12, 9))
+sns.scatterplot(data=analise_competitiva, x='count', y='mean', s=100,alpha=0.7)
+
+for i, row in analise_competitiva.head(10).iterrows():
+    plt.text(row['count'], row['mean'], i, fontsize= 9)
+
+plt.title('Matrix de Posicionamento Competitivo de Laboratórios')
+plt.xlabel('Numero de Produtos(Volume de Portifolio)')
+plt.ylabel('Preço Médio (Posicionamento de Valor)')
+plt.xscale('log')
+plt.yscale('log')
+plt.grid(True)
+plt.show()
+
+#--------------Caboooo-------------------
 print("\nAnálise concluída.")
+
